@@ -1,0 +1,17 @@
+{% load thumbnail %}
+<li class="post list-group-item">
+  <p><small>reply posted {{ post.created|timesince }} ago</small></p>
+  {% if post.image %}
+  <div class="media">
+    <a href="{{ post.image.url }}" class="media-left">
+      <img src="{{ post.image|thumbnail_url:"reply" }}"
+	   alt="Post Image">
+    </a>
+    <div class="media-body">
+      {{ post.text|linebreaks }}
+    </div>
+  </div>
+  {% else %}
+  {{ post.text|linebreaks }}
+  {% endif %}
+</li>

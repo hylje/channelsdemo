@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load staticfiles %}
+
+{% block content %}
+<h2>
+  <small>Browsing thread:</small><br>
+  {{ thread.title }}</h2>
+
+<a href="{% url "thread-index" %}">
+  <button class="btn btn-default">Return</button>
+</a>
+
+<form method="post" action="{% url "post" thread.pk %}" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% for field in post_form %}
+  {% include "snippets/form_group.html" %}
+  {% endfor %}
+  <div class="form-group"><button type="submit" class="btn btn-default">Post</button></div>
+</form>
+
+<div class="panel panel-default">
+  <div class="panel-heading">
+    <small>posted {{ thread.first_post.created|timesince }} ago</small>
+    <br><small>{{ thread.num_posts }} posts with {{ thread.num_images }} images, last bumped {{ thread.bumped|timesince }} ago</small>
+  </div>
+  <div class="post panel-body">
+    {% if thread.first_post.image %}
+    <div class="media">
+      <a href="{{ thread.first_post.image.url }}" class="media-left">
+	<img src="{{ thread.first_post.image|thumbnail_url:"op" }}" alt="Post Image" class="img-thumbnail">
+      </a>
+      <div class="media-body">
+	{{ thread.first_post.text|linebreaks }}
+      </div>
+    </div>
+    {% else %}
+    {{ thread.first_post.text|linebreaks }}
+    {% endif %}
+  </div>
+  <ul class="posts list-group">
+    {% for post in thread.all_last_posts %}
+    {% include "main/snippets/post.html" %}
+    {% endfor %}
+  </ul>
+</div>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" src="{% static "js/boardnotify.js" %}"></script>
+
+<script type="text/javascript">
+socket_thread = new ReconnectingWebSocket("ws://127.0.0.1:8000/thread/{{ thread.pk }}/");
+socket_thread.onmessage = function(e) {
+  $(".posts").append(e.data);
+}
+</script>
+{% endblock %}

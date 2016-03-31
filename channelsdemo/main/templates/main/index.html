@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% load thumbnail %}
+{% load staticfiles %}
+
+{% block content %}
+<h2>Thread Index</h2>
+
+<form method="post" action="{% url "post-thread" %}" enctype="multipart/form-data">
+  {% csrf_token %}
+  {% for field in thread_form %}
+  {% include "snippets/form_group.html" %}
+  {% endfor %}
+  {% for field in post_form %}
+  {% include "snippets/form_group.html" %}
+  {% endfor %}
+
+  <div class="form-group">
+    <button type="submit" class="btn btn-default">Post New Thread</button>
+
+    <button type="button" onclick="notifyMe()" class="btn btn-default">Enable notifications on new posts</button>
+  </div>
+</form>
+
+
+<ul class="threads list-unstyled">
+  {% for thread in threads %}
+  <li>
+    <div class="panel panel-default">
+      <div class="panel-heading">
+	<h3><a href="{{ thread.get_absolute_url }}">{{ thread.title }}</a>
+	  <br><small>posted {{ thread.first_post.created|timesince }} ago</small>
+	  <br><small>{{ thread.num_posts }} posts with {{ thread.num_images }} images, last bumped {{ thread.bumped|timesince }} ago</small>
+	</h3>
+      </div>
+      <div class="post panel-body">
+	{% if thread.first_post.image %}
+	<div class="media">
+	  <a href="{{ thread.first_post.image.url }}" class="media-left">
+	    <img src="{{ thread.first_post.image|thumbnail_url:"op" }}" alt="Post Image" class="img-thumbnail">
+	  </a>
+	  <div class="media-body">
+	    {{ thread.first_post.text|linebreaks }}
+	  </div>
+	</div>
+	{% else %}
+	{{ thread.first_post.text|linebreaks }}
+	{% endif %}
+      </div>
+      {% if thread.last_posts %}
+      <ul class="last-posts list-group">
+	{% for post in thread.last_posts %}
+	{% include "main/snippets/post.html" %}
+	{% endfor %}
+      </ul>
+      {% endif %}
+    </div>
+  </li>
+  {% endfor %}
+</ul>
+
+{% endblock %}
+
+{% block script %}
+<script type="text/javascript" src="{% static "js/boardnotify.js" %}">
+</script>
+{% endblock %}
